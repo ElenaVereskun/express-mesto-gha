@@ -1,23 +1,23 @@
 const router = require('express').Router();
-const { users } = require('../models/user');
+const  users = require('../models/user');
 
-router.get('/users', (req, res) => {
+router.get('/', (req, res) => {
   res.send(users);
 });
 
-router.get('/users/:userId', (req, res) => {
+router.get('/:userId', (req, res) => {
   const { userId } = req.params;
   // eslint-disable-next-line no-underscore-dangle, no-shadow
   const user = users.find((user) => user._id === userId);
   res.send(user);
 });
 
-router.post('/users', (req, res) => {
+router.post('/', (req, res) => {
   const { name, about, avatar } = req.body;
 
-  users.create({ name, about, avatar });
-
-  res.status(201).send(req.body);
+  return users.create({ name, about, avatar })
+    .then((user) => res.status(201).send({data: user}))
+    .catch((err) => res.status(500).send({message:'Ошибка добавления пользователя'}));
 });
 
 module.exports = router;
