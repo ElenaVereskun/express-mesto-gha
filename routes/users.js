@@ -1,23 +1,13 @@
 const router = require('express').Router();
-const  users = require('../models/user');
 
-router.get('/', (req, res) => {
-  res.send(users);
-});
+const { postUser, getUserId, getUsers } = require('../controllers/user');
 
-router.get('/:userId', (req, res) => {
-  const { userId } = req.params;
-  // eslint-disable-next-line no-underscore-dangle, no-shadow
-  const user = users.find((user) => user._id === userId);
-  res.send(user);
-});
+router.post('/users', postUser);
+router.get('/users', getUsers);
+router.get('/users/:userId', getUserId);
 
-router.post('/', (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  return users.create({ name, about, avatar })
-    .then((user) => res.status(201).send({data: user}))
-    .catch((err) => res.status(500).send({message:'Ошибка добавления пользователя'}));
+router.use((req, res) => {
+  res.status(404).send({ message: `Ресурс по адресу ${req.path} не найден` });
 });
 
 module.exports = router;
