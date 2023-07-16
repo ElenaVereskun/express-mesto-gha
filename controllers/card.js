@@ -1,25 +1,45 @@
-const router = require('express').Router();
 const cards = require('../models/card');
 
 module.exports.getCards = (req, res) => {
-  const { name, link } = req.body;
-  return cards.create({ name, link })
+  cards.find({})
     .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => res.status(400).send({ message: 'Переданы некорректные данные при получении карточек' }));
-}
+    .catch((err) => {
+      if (err.name === 'SomeErrorName') {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(404).send({ message: 'Переданы некорректные данные при получении карточек' });
+      }
+      return res.status(500).send({ message: 'Ошибка по умолчанию' });
+    });
+};
 
 module.exports.createCard = (req, res) => {
-  console.log(req.user._id);
   const { name, link } = req.body;
-
-  return cards.create({ name, link })
+  const owner = req.user._id;
+  return cards.create({ name, link, owner })
     .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => res.status(400).send({ message: ' Переданы некорректные данные при создании карточки' }));
-}
+    .catch((err) => {
+      if (err.name === 'SomeErrorName') {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(404).send({ message: 'Переданы некорректные данные при создании карточки' });
+      }
+      return res.status(500).send({ message: 'Ошибка по умолчанию' });
+    });
+};
 
 module.exports.deleteCard = (req, res) => {
-  const { userId } = req.params;
-  return cards.find((card) => card._id === userId)
+  cards.findById(req.params.userId)
     .then((card) => res.status(201).delete(card))
-    .catch((err) => res.status(404).send({ message: 'Карточка с указанным _id не найдена' }));
-}
+    .catch((err) => {
+      if (err.name === 'SomeErrorName') {
+        return res.status(400).send({ message: 'Переданы некорректные данные' });
+      }
+      if (err.name === 'DocumentNotFoundError') {
+        return res.status(404).send({ message: ' Карточка c указанному _id не найдена' });
+      }
+      return res.status(500).send({ message: 'Ошибка по умолчанию' });
+    });
+};

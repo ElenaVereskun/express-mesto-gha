@@ -13,21 +13,21 @@ const cardSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'user',
+    ref: 'user',
     required: true,
   },
   likes: [
     {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref:'user',
-    default: [],
-  },
-],
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'user',
+      default: [],
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
-  }
+  },
 });
 
 module.exports = mongoose.model('card', cardSchema);
