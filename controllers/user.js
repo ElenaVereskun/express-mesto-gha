@@ -9,9 +9,6 @@ module.exports.postUser = (req, res) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные  при создании пользователя' });
       }
-      if (err.name === 'DocumentNotFoundError') {
-        return res.status(404).send({ message: 'Пользователи не найдены' });
-      }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
 };
@@ -40,8 +37,8 @@ module.exports.getUserId = (req, res) => {
 };
 
 module.exports.updateProfile = (req, res) => {
-  const userId = req.user._id;
   const { name, about } = req.body;
+  const userId = req.user._id;
   users.findByIdAndUpdate(userId, { name, about })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
@@ -59,13 +56,14 @@ module.exports.updateAvatar = (req, res) => {
   const userId = req.user._id;
   const { avatar } = req.body;
   users.findByIdAndUpdate(userId, { avatar })
-    .then(() => res.status(200).send({ avatar }))
+    .orFail(new Error('NotValidId'))
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(400).send({ message: ' Переданы некорректные данные при обновлении аватара' });
       }
-      if (err.name === 'DocumentNotFoundError') {
-        return res.status(404).send({ message: 'Пользователь с указанным _id не найден.' });
+      if (err.message === 'NotValidId') {
+        return res.status(404).send({ message: ' Пользователь указанным _id не найден.' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
