@@ -4,7 +4,7 @@ module.exports.getCards = (req, res) => {
   cards.find({})
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
-      if (err.name === 'SomeErrorName') {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       if (err.name === 'DocumentNotFoundError') {
@@ -20,7 +20,7 @@ module.exports.createCard = (req, res) => {
   return cards.create({ name, link, owner })
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
-      if (err.name === 'SomeErrorName') {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       if (err.name === 'DocumentNotFoundError') {
@@ -34,7 +34,7 @@ module.exports.deleteCard = (req, res) => {
   cards.findByIdAndRemove(req.params.cardId)
     .then((card) => res.status(201).send(card))
     .catch((err) => {
-      if (err.name === 'SomeErrorName') {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       if (err.name === 'DocumentNotFoundError') {
@@ -51,7 +51,7 @@ module.exports.likeCard = (req, res) => cards.findByIdAndUpdate(
 )
   .then((card) => res.status(201).send(card))
   .catch((err) => {
-    if (err.name === 'SomeErrorName') {
+    if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка.' });
     }
     if (err.name === 'DocumentNotFoundError') {
@@ -67,7 +67,7 @@ module.exports.dislikeCard = (req, res) => cards.findByIdAndUpdate(
 )
   .then((card) => res.status(201).send(card))
   .catch((err) => {
-    if (err.name === 'SomeErrorName') {
+    if (err.name === 'ValidationError') {
       return res.status(400).send({ message: 'Переданы некорректные данные для снятия лайка.' });
     }
     if (err.name === 'DocumentNotFoundError') {
