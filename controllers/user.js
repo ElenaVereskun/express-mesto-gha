@@ -35,7 +35,7 @@ module.exports.getUserId = (req, res) => {
   users.findById(req.params.userId)
     .then((user) => res.status(201).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.kind === 'ObjectId') {
         return res.status(400).send({ message: 'Переданы некорректные данные' });
       }
       if (err.name === 'DocumentNotFoundError') {
