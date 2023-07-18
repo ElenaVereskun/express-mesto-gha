@@ -1,4 +1,4 @@
-const { default: mongoose, MongooseError } = require('mongoose');
+const { default: mongoose } = require('mongoose');
 const Card = require('../models/card');
 
 const ERROR_BAD_REQUEST = 400;
@@ -18,7 +18,7 @@ module.exports.createCard = (req, res) => {
   return Card.create({ name, link, owner })
     .then((card) => res.status(STATUS_OK).send({ data: card }))
     .catch((err) => {
-      if (err instanceof MongooseError.ValidationError) {
+      if (err instanceof mongoose.Error.ValidationError) {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
@@ -27,13 +27,13 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .orFail(new Error('NotValidId'))
+    .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(STATUS_OK).send(card))
     .catch((err) => {
-      if (err instanceof mongoose.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
-      if (err.message === 'NotValidId') {
+      if (err.message === 'DocumentNotFoundError') {
         return res.status(ERROR_NOT_FOUND).send({ message: ' Карточка с указанным _id не найдена.' });
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
@@ -45,13 +45,13 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   { $addToSet: { likes: req.user._id } },
   { new: true },
 )
-  .orFail(new Error('NotValidId'))
+  .orFail(new Error('DocumentNotFoundError'))
   .then((card) => res.status(STATUS_OK).send(card))
   .catch((err) => {
-    if (err instanceof mongoose.CastError) {
+    if (err instanceof mongoose.Error.CastError) {
       return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки лайка.' });
     }
-    if (err.message === 'NotValidId') {
+    if (err.message === 'DocumentNotFoundError') {
       return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
     }
     return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
@@ -62,13 +62,13 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   { $pull: { likes: req.user._id } },
   { new: true },
 )
-  .orFail(new Error('NotValidId'))
+  .orFail(new Error('DocumentNotFoundError'))
   .then((card) => res.status(STATUS_OK).send(card))
   .catch((err) => {
-    if (err instanceof mongoose.CastError) {
+    if (err instanceof mongoose.Error.CastError) {
       return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для снятия лайка.' });
     }
-    if (err.message === 'NotValidId') {
+    if (err.message === 'DocumentNotFoundError') {
       return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
     }
     return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
