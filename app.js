@@ -3,6 +3,8 @@ const express = require('express');
 const { PORT = 3000 } = process.env;
 const app = express();
 
+const ERROR_NOT_FOUND = 404;
+
 const mongoose = require('mongoose');
 
 const routes = require('./routes');
@@ -22,13 +24,10 @@ app.use((req, res, next) => {
   next();
 });
 
-/* app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards')); */
-
 app.use(routes);
 
 app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Страница не найдена' });
+  res.status(ERROR_NOT_FOUND).json({ message: 'Страница не найдена' });
 });
 
 app.listen(PORT, () => {
