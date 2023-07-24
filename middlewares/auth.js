@@ -1,8 +1,6 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { verify } from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-// eslint-disable-next-line import/prefer-default-export, consistent-return
-export function auth(req, res, next) {
+module.exports = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || authorization.startsWith('Bearer ')) {
@@ -13,10 +11,10 @@ export function auth(req, res, next) {
   let payload;
 
   try {
-    payload = verify(token, 'some-secret-key');
+    payload = jwt.verify(token, 'some-secret-key');
   } catch (err) {
-    return res.status(401).send({ message: 'Необходима авторизация' });
+    return res.status(401).send({ message: 'Необходима авторизация2' });
   }
   req.user = payload;
   next();
-}
+};

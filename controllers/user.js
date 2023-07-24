@@ -1,5 +1,4 @@
 const { default: mongoose } = require('mongoose');
-const validator = require('validator');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const bcrypt = require('bcryptjs');
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -16,18 +15,14 @@ module.exports.createUser = (req, res) => {
     name, about, avatar, email, password,
   } = req.body;
 
-  /* const hash = bcryptjs.hash(password, 10); */
-
-  return User.create({
-    name, about, avatar, email, password,
-  })
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.status(STATUS_OK).send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные  при создании пользователя' });
-      }
-      if (err === validator) {
-        return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные почта или пароль' });
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
     });
@@ -40,7 +35,8 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId)
+  const { email, password } = req.body;
+  User.findOne({ email, password })
     .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(STATUS_OK).send(user))
     .catch((err) => {
@@ -48,7 +44,7 @@ module.exports.getUser = (req, res) => {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь по указанному _id не найден' });
+        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь не найден' });
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
     });
@@ -103,8 +99,35 @@ module.exports.updateAvatar = (req, res) => {
     });
 };
 
-// eslint-disable-next-line consistent-return
+/* module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then(({ _id: userId }) => {
+      if (!userId) {
+        const token = JWT.sign({ userId }, 'some-secret-key', { expiresIn: '7d' });
+        res.status(STATUS_OK).send({ _id: token });
+      }
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+    });
+}; */
+
 module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials({ email, password })
+    .then((user) => {
+      const token = JWT.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.status(STATUS_OK).send({ _id: token });
+    })
+    .catch((err) => {
+      res.status(401).send({ message: err.message });
+    });
+};
+
+/* module.exports.login = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -116,15 +139,13 @@ module.exports.login = (req, res) => {
       if (!user) {
         res.status(400).send({ message: 'Пользователь не найден' });
       }
-
       const token = JWT.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-
-      const passwordHash = bcrypt.hash(req.body.password, 10);
-      const result = bcrypt.compare(req.body.password, passwordHash);
+      const result = bcrypt.compare(password, user.password);
       if (!result) {
         res.status(400).send({ message: 'Неправильное имя пользователя или пароль' });
         return;
       }
       res.status(200).send({ _id: token });
-    });
-};
+    })
+    .catch(() => res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' }));
+}; */

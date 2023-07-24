@@ -11,9 +11,10 @@
   "author": "Vereskun",
   "license": "ISC",
   "dependencies": {
-
+    "bcryptjs": "^2.4.3",
+    "celebrate": "^15.0.1",
     "express": "^4.18.2",
-
+    "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.3.4",
     "validator": "^13.9.0"
   },
@@ -21,8 +22,6 @@
     "eslint": "^8.45.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.1",
     "nodemon": "^3.0.1"
   }
 }
