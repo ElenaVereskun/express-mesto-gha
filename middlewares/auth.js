@@ -16,5 +16,5 @@ module.exports = (req, res, next) => {
     return res.status(401).send({ message: 'Необходима авторизация2' });
   }
   req.user = payload;
-  next();
+  return next();
 };

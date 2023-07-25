@@ -4,9 +4,10 @@ const bcrypt = require('bcryptjs');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const JWT = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../errors/not-found-err');
 
 const ERROR_BAD_REQUEST = 400;
-const ERROR_NOT_FOUND = 404;
+/* const ERROR_NOT_FOUND = 404; */
 const ERROR_INTERNAL_SERVER = 500;
 const STATUS_OK = 200;
 
@@ -34,9 +35,9 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' }));
 };
 
-module.exports.getUser = (req, res) => {
-  const { email, password } = req.body;
-  User.findOne({ email, password })
+module.exports.getUser = (req, res, next) => {
+  const { userId } = req.body;
+  User.findOne(userId)
     .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(STATUS_OK).send(user))
     .catch((err) => {
@@ -44,13 +45,14 @@ module.exports.getUser = (req, res) => {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.getUserId = (req, res) => {
+module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(STATUS_OK).send(user))
@@ -59,13 +61,14 @@ module.exports.getUserId = (req, res) => {
         return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь по указанному _id не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.updateProfile = (req, res) => {
+module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { name, about }, { new: true, runValidators: true })
@@ -76,13 +79,14 @@ module.exports.updateProfile = (req, res) => {
         return res.status(ERROR_BAD_REQUEST).send({ message: ' Переданы некорректные данные при обновлении профиля' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь по указанному _id не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const userId = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
@@ -93,59 +97,22 @@ module.exports.updateAvatar = (req, res) => {
         return res.status(ERROR_BAD_REQUEST).send({ message: ' Переданы некорректные данные при обновлении аватара' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Пользователь с указанным _id не найден.' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-/* module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
-  User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then(({ _id: userId }) => {
-      if (!userId) {
-        const token = JWT.sign({ userId }, 'some-secret-key', { expiresIn: '7d' });
-        res.status(STATUS_OK).send({ _id: token });
-      }
-    })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
-}; */
-
-module.exports.login = (req, res) => {
-  const { email, password } = req.body;
-
-  return User.findUserByCredentials({ email, password })
-    .then((user) => {
-      const token = JWT.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      const token = JWT.sign({ userId }, 'some-secret-key', { expiresIn: '7d' });
       res.status(STATUS_OK).send({ _id: token });
     })
     .catch((err) => {
       res.status(401).send({ message: err.message });
-    });
-};
-
-/* module.exports.login = (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    res.status(401).send({ message: 'Email or password is empty' });
-    return;
-  }
-  User.findOne({ email })
-    .then((user) => {
-      if (!user) {
-        res.status(400).send({ message: 'Пользователь не найден' });
-      }
-      const token = JWT.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      const result = bcrypt.compare(password, user.password);
-      if (!result) {
-        res.status(400).send({ message: 'Неправильное имя пользователя или пароль' });
-        return;
-      }
-      res.status(200).send({ _id: token });
     })
-    .catch(() => res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' }));
-}; */
+    .catch(next);
+};

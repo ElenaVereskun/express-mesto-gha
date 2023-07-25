@@ -5,10 +5,10 @@ const auth = require('../middlewares/auth');
 const userRouter = require('./users');
 const cardRouter = require('./cards');
 
-router.post('/signin', auth, login);
+router.post('/signin', login);
 router.post('/signup', createUser);
 
-router.use('/users', userRouter);
-router.use('/cards', cardRouter);
+router.use('/users', auth, userRouter);
+router.use('/cards', auth, cardRouter);
 
 module.exports = router;
