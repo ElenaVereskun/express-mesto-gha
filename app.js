@@ -23,11 +23,6 @@ app.use('*', (req, res) => {
   res.status(ERROR_NOT_FOUND).json({ message: 'Страница не найдена' });
 });
 
-process.on('uncaughtException', (err, origin) => {
-  console.info(
-    `Caught exception: ${err}\n` + `Exception origin: ${origin}`,
-  );
-});
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;

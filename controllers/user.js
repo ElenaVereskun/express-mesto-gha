@@ -1,6 +1,6 @@
 const { default: mongoose } = require('mongoose');
 const bcrypt = require('bcryptjs');
-const JWT = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-error');
@@ -34,7 +34,7 @@ module.exports.getUsers = (req, res) => {
     .then((users) => res.status(STATUS_OK).send(users));
 };
 
-module.exports.getUser = (req, res, next) => {
+module.exports.getUserInfo = (req, res, next) => {
   const { userId } = req.body;
   User.findOne(userId)
     .orFail(new Error('DocumentNotFoundError'))
@@ -98,13 +98,30 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch(next);
 };
-
+/*
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
-    .then(({ _id: userId }) => {
-      const token = JWT.sign({ userId }, 'some-secret-key', { expiresIn: '7d' });
-      res.status(STATUS_OK).send({ _id: token });
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.status(STATUS_OK).send({ token });
+    })
+    .catch(() => {
+      throw new Unauthorized('Нет пользователя с таким логином и паролем');
+    })
+    .catch(next);
+}; */
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({
+        _id: user._id,
+        email: user.email,
+      }, 'some-secret-key', { expiresIn: '7d' });
+      res.status(STATUS_OK).send({ token });
     })
     .catch(() => {
       throw new Unauthorized('Нет пользователя с таким логином и паролем');
