@@ -6,7 +6,7 @@ const app = express();
 const ERROR_NOT_FOUND = 404;
 
 const mongoose = require('mongoose');
-
+const { errors } = require('celebrate');
 const routes = require('./routes');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -28,7 +28,7 @@ process.on('uncaughtException', (err, origin) => {
     `Caught exception: ${err}\n` + `Exception origin: ${origin}`,
   );
 });
-
+app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res

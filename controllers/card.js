@@ -1,46 +1,45 @@
 const { default: mongoose } = require('mongoose');
 const Card = require('../models/card');
 
-const ERROR_BAD_REQUEST = 400;
-const ERROR_NOT_FOUND = 404;
-const ERROR_INTERNAL_SERVER = 500;
+const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-error');
+
 const STATUS_OK = 200;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
-    .then((card) => res.status(STATUS_OK).send({ data: card }))
-    .catch(() => res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' }));
+    .then((card) => res.status(STATUS_OK).send({ data: card }));
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   return Card.create({ name, link, owner })
     .then((card) => res.status(STATUS_OK).send({ data: card }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+        throw new BadRequestError('Переданы некорректные данные');
       }
-      return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail(new Error('DocumentNotFoundError'))
     .then((card) => res.status(STATUS_OK).send(card))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+        throw new BadRequestError('Переданы некорректные данные');
       }
       if (err.message === 'DocumentNotFoundError') {
-        return res.status(ERROR_NOT_FOUND).send({ message: ' Карточка с указанным _id не найдена.' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
-      return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-    });
+    })
+    .catch(next);
 };
 
-module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   req.params.cardId,
   { $addToSet: { likes: req.user._id } },
   { new: true },
@@ -49,15 +48,15 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   .then((card) => res.status(STATUS_OK).send(card))
   .catch((err) => {
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для постановки лайка.' });
+      throw new BadRequestError('Переданы некорректные данные для постановки лайка');
     }
     if (err.message === 'DocumentNotFoundError') {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
+      throw new NotFoundError('Передан несуществующий _id карточки');
     }
-    return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-  });
+  })
+  .catch(next);
 
-module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   req.params.cardId,
   { $pull: { likes: req.user._id } },
   { new: true },
@@ -66,10 +65,10 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   .then((card) => res.status(STATUS_OK).send(card))
   .catch((err) => {
     if (err instanceof mongoose.Error.CastError) {
-      return res.status(ERROR_BAD_REQUEST).send({ message: 'Переданы некорректные данные для снятия лайка.' });
+      throw new BadRequestError('Переданы некорректные данные для снятия лайка');
     }
     if (err.message === 'DocumentNotFoundError') {
-      return res.status(ERROR_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
+      throw new NotFoundError('Передан несуществующий _id карточки');
     }
-    return res.status(ERROR_INTERNAL_SERVER).send({ message: 'Ошибка по умолчанию' });
-  });
+  })
+  .catch(next);
