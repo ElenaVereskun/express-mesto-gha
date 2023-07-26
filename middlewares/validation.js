@@ -14,6 +14,8 @@ const { celebrate, Joi } = require('celebrate');
 
 module.exports.validationCreateUser = celebrate({
   body: Joi.object().keys({
+    name: Joi.string().max(30).min(2),
+    about: Joi.string().max(30).min(2),
     email: Joi.string().required(),
     password: Joi.string().required(),
   }),
