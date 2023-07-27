@@ -59,3 +59,9 @@ module.exports.validationCardId = celebrate({
     cardId: Joi.string().hex().required(),
   }),
 });
+
+module.exports.validationUserId = celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().hex().required(),
+  }),
+});

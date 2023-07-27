@@ -22,7 +22,6 @@ module.exports.createUser = (req, res, next) => {
       about: user.about,
       avatar: user.avatar,
       email: user.email,
-      password,
     }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -41,8 +40,7 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserInfo = (req, res, next) => {
-  const { userId } = req.body;
-  User.findOne(userId)
+  User.findById(req.user._id)
     .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(STATUS_OK).send(user))
     .catch((err) => {
