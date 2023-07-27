@@ -18,11 +18,11 @@ module.exports.createUser = (req, res, next) => {
       name, about, avatar, email, password: hash,
     }))
     .then((user) => res.status(STATUS_OK).send({
-      email: user.email,
-      password: user.password,
       name: user.name,
       about: user.about,
-      _id: user._id,
+      avatar: user.avatar,
+      email: user.email,
+      password,
     }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {

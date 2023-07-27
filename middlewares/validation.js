@@ -56,6 +56,6 @@ module.exports.validationUpdateProfile = celebrate({
 
 module.exports.validationCardId = celebrate({
   params: Joi.object().keys({
-    _id: Joi.string().hex().required(),
+    cardId: Joi.string().hex().required(),
   }),
 });
