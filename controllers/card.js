@@ -26,11 +26,11 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Card.findById(req.user._id)
+  Card.findById(req.params.cardId)
     .orFail(new Error('DocumentNotFoundError'))
     .then((card) => {
       if (String(card.owner) === String(req.user._id)) {
-        Card.findByIdAndRemove(req.user._id)
+        Card.findByIdAndRemove(req.params.cardId)
           .then((cardDelete) => res.send(cardDelete));
       }
     })
