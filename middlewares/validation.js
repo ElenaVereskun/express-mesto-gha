@@ -38,7 +38,26 @@ module.exports.validationLogin = celebrate({
 
 module.exports.validationCreateCard = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().max(30).min(2),
-    link: Joi.string().required(),
+    name: Joi.string().required().max(30).min(2),
+    link: Joi.string().required()
+      .pattern(
+        /(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/,
+      ),
+  }),
+});
+
+module.exports.validationUpdateAvatar = celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required()
+      .pattern(
+        /(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/,
+      ),
+  }),
+});
+
+module.exports.validationUpdateProfile = celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().max(30).min(2),
+    aboute: Joi.string().required().max(30).min(2),
   }),
 });

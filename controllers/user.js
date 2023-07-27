@@ -44,26 +44,27 @@ module.exports.getUserInfo = (req, res, next) => {
         throw new BadRequestError('Переданы некорректные данные');
       }
       if (err.message === 'DocumentNotFoundError') {
-        throw new NotFoundError('Нет пользователя с таким id');
+        throw new NotFoundError('Пользователь не найден');
       }
     })
     .catch(next);
 };
 
-module.exports.getUserId = (req, res, next) => {
-  User.findById(req.params.userId)
+/* module.exports.getUserInfo = (req, res, next) => {
+  const { userId } = req.body;
+  User.findOne(userId)
     .orFail(new Error('DocumentNotFoundError'))
     .then((user) => res.status(STATUS_OK).send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        throw new BadRequestError('Переданы некорректные данные');
+        return res.status(404).send({ message: 'Переданы некорректные данные!!!' });
       }
       if (err.message === 'DocumentNotFoundError') {
-        throw new NotFoundError('Нет пользователя с таким id');
+        return res.status(40).send({ message: 'Переданы некорректные данные2' });
       }
     })
     .catch(next);
-};
+}; */
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
@@ -112,16 +113,28 @@ module.exports.login = (req, res, next) => {
     .catch(next);
 }; */
 
+module.exports.getUserId = (req, res, next) => {
+  User.findById(req.params.userId)
+    .orFail(new Error('DocumentNotFoundError'))
+    .then((user) => res.status(STATUS_OK).send(user))
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        throw new BadRequestError('Переданы некорректные данные');
+      }
+      if (err.message === 'DocumentNotFoundError') {
+        throw new NotFoundError('Нет пользователя с таким id');
+      }
+    })
+    .catch(next);
+};
+
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({
-        _id: user._id,
-        email: user.email,
-      }, 'some-secret-key', { expiresIn: '7d' });
-      res.status(STATUS_OK).send({ token });
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      res.status(STATUS_OK).send({ _id: token });
     })
     .catch(() => {
       throw new Unauthorized('Нет пользователя с таким логином и паролем');

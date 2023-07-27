@@ -3,6 +3,7 @@ const Card = require('../models/card');
 
 const NotFoundError = require('../errors/not-found-err');
 const BadRequestError = require('../errors/bad-request-error');
+const Forbidden = require('../errors/forbidden');
 
 const STATUS_OK = 200;
 
@@ -31,7 +32,7 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => res.status(STATUS_OK).send(card))
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        throw new BadRequestError('Переданы некорректные данные');
+        throw new Forbidden('Ошибка доступа');
       }
       if (err.message === 'DocumentNotFoundError') {
         throw new NotFoundError('Нет пользователя с таким id');
