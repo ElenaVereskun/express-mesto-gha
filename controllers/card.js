@@ -38,10 +38,10 @@ module.exports.deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === 'DocumentNotFoundError') {
-        throw new NotFoundError('Карточка не найдена');
+        throw new NotFoundError('Удаление карточки с несуществующим в БД id');
       }
-      next(err);
-    });
+    })
+    .catch(next);
 };
 
 module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
