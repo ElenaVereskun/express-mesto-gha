@@ -27,18 +27,13 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(new Error('DocumentNotFoundError'))
+    .orFail(new NotFoundError('Удаление карточки с несуществующим в БД id'))
     .then((card) => {
       if (String(card.owner) === String(req.user._id)) {
         Card.findByIdAndRemove(req.params.cardId)
           .then((cardDelete) => res.status(STATUS_OK).send(cardDelete));
       } else {
-        throw new Forbidden('Ошибка доступа');
-      }
-    })
-    .catch((err) => {
-      if (err.message === 'DocumentNotFoundError') {
-        throw new NotFoundError('Удаление карточки с несуществующим в БД id');
+        next(new Forbidden('Ошибка доступа'));
       }
     })
     .catch(next);
