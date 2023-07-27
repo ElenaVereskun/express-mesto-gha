@@ -31,18 +31,17 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       if (String(card.owner) === String(req.user._id)) {
         Card.findByIdAndRemove(req.params.cardId)
-          .then((cardDelete) => res.send(cardDelete));
+          .then((cardDelete) => res.status(STATUS_OK).send(cardDelete));
+      } else {
+        throw new Forbidden('Ошибка доступа');
       }
     })
     .catch((err) => {
       if (err.message === 'DocumentNotFoundError') {
-        throw new NotFoundError('!!!Нет пользователя с таким id');
+        throw new NotFoundError('Карточка не найдена');
       }
-      if (err instanceof mongoose.Error.CastError) {
-        throw new Forbidden('Ошибка доступа');
-      }
-    })
-    .catch(next);
+      next(err);
+    });
 };
 
 module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
