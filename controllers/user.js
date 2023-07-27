@@ -17,7 +17,13 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then(() => res.status(STATUS_OK).send(req.body))
+    .then((user) => res.status(STATUS_OK).send({
+      email: user.email,
+      password: user.password,
+      name: user.name,
+      about: user.about,
+      _id: user._id,
+    }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         throw new BadRequestError('Переданы некорректные данные');
@@ -49,22 +55,6 @@ module.exports.getUserInfo = (req, res, next) => {
     })
     .catch(next);
 };
-
-/* module.exports.getUserInfo = (req, res, next) => {
-  const { userId } = req.body;
-  User.findOne(userId)
-    .orFail(new Error('DocumentNotFoundError'))
-    .then((user) => res.status(STATUS_OK).send(user))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return res.status(404).send({ message: 'Переданы некорректные данные!!!' });
-      }
-      if (err.message === 'DocumentNotFoundError') {
-        return res.status(40).send({ message: 'Переданы некорректные данные2' });
-      }
-    })
-    .catch(next);
-}; */
 
 module.exports.updateProfile = (req, res, next) => {
   const { name, about } = req.body;
@@ -99,19 +89,6 @@ module.exports.updateAvatar = (req, res, next) => {
     })
     .catch(next);
 };
-/*
-module.exports.login = (req, res, next) => {
-  const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      res.status(STATUS_OK).send({ token });
-    })
-    .catch(() => {
-      throw new Unauthorized('Нет пользователя с таким логином и паролем');
-    })
-    .catch(next);
-}; */
 
 module.exports.getUserId = (req, res, next) => {
   User.findById(req.params.userId)
