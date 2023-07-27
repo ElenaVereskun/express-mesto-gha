@@ -1,17 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
 
-/* module.exports.validationCreateUser = celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().max(30).min(2),
-    about: Joi.string().required().max(30).min(2),
-    avatar: Joi.string()
-      .required()
-      .pattern(
-        /(http|https):\/\/(www\.)?[a-z0-9]([\w.[](),_!@?=*;&$':\/~+#-](#)?)/,
-      ),
-  }),
-}); */
-
 module.exports.validationCreateUser = celebrate({
   body: Joi.object().keys({
     name: Joi.string().max(30).min(2),
@@ -62,6 +50,12 @@ module.exports.validationUpdateAvatar = celebrate({
 module.exports.validationUpdateProfile = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().max(30).min(2),
-    aboute: Joi.string().required().max(30).min(2),
+    about: Joi.string().required().max(30).min(2),
+  }),
+});
+
+module.exports.validationCardId = celebrate({
+  params: Joi.object().keys({
+    _id: Joi.string().hex().required(),
   }),
 });

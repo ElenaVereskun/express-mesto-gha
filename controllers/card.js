@@ -26,16 +26,21 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  const { owner } = req.user._id;
-  Card.findByIdAndRemove(owner)
+  const { cardId } = req.params.cardId;
+  Card.findById(cardId)
     .orFail(new Error('DocumentNotFoundError'))
-    .then((card) => res.status(STATUS_OK).send(card))
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        throw new Forbidden('Ошибка доступа');
+    .then((card) => {
+      if (String(card.owner) === String(req.user._id)) {
+        Card.findByIdAndRemove(cardId)
+          .then((cardDelete) => res.send(cardDelete));
       }
+    })
+    .catch((err) => {
       if (err.message === 'DocumentNotFoundError') {
         throw new NotFoundError('Нет пользователя с таким id');
+      }
+      if (err instanceof mongoose.Error.CastError) {
+        throw new Forbidden('Ошибка доступа');
       }
     })
     .catch(next);
