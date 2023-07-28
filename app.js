@@ -4,6 +4,13 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many request from this IP',
+});
+
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const routes = require('./routes');
@@ -17,7 +24,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   .then(() => console.log('Сервер работает'))
   .catch(() => console.log('Сервер не работает'));
 
-app.use(rateLimit);
+app.use(limiter);
 app.use(express.json());
 
 app.use(routes);

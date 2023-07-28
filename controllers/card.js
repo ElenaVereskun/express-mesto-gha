@@ -32,7 +32,7 @@ module.exports.deleteCard = (req, res, next) => {
     .then((card) => {
       if (String(card.owner) === String(req.user._id)) {
         Card.deleteOne(card)
-          .then((cardDelete) => res.status(STATUS_OK).send(cardDelete));
+          .then(() => res.status(STATUS_OK).send(card));
       } else {
         next(new Forbidden('Ошибка доступа'));
       }
