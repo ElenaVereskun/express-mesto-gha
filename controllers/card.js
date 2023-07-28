@@ -6,6 +6,7 @@ const BadRequestError = require('../errors/bad-request-error');
 const Forbidden = require('../errors/forbidden');
 
 const STATUS_OK = 200;
+const STATUS_CREATED = 201;
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -16,7 +17,7 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   return Card.create({ name, link, owner })
-    .then((card) => res.status(STATUS_OK).send({ data: card }))
+    .then((card) => res.status(STATUS_CREATED).send({ data: card }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         throw new BadRequestError('Переданы некорректные данные');
@@ -30,7 +31,7 @@ module.exports.deleteCard = (req, res, next) => {
     .orFail(new NotFoundError('Удаление карточки с несуществующим в БД id'))
     .then((card) => {
       if (String(card.owner) === String(req.user._id)) {
-        Card.findByIdAndRemove(req.params.cardId)
+        Card.deleteOne(card)
           .then((cardDelete) => res.status(STATUS_OK).send(cardDelete));
       } else {
         next(new Forbidden('Ошибка доступа'));

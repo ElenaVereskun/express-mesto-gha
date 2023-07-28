@@ -8,25 +8,24 @@ const Unauthorized = require('../errors/unauthorized');
 const Confict = require('../errors/confict');
 
 const STATUS_OK = 200;
+const STATUS_CREATED = 201;
 
 module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
   bcrypt.hash(password, 10)
+    .orFail(new BadRequestError('Переданы некорректные данные'))
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.status(STATUS_OK).send({
+    .then((user) => res.status(STATUS_CREATED).send({
       name: user.name,
       about: user.about,
       avatar: user.avatar,
       email: user.email,
     }))
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        throw new BadRequestError('Переданы некорректные данные');
-      }
       if (err.code === 11000) {
         throw new Confict('Пользователь уже зарегистрирован');
       }

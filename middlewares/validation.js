@@ -1,4 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
+const { regexEmail, regexLink } = require('../utils/regex');
 
 module.exports.validationCreateUser = celebrate({
   body: Joi.object().keys({
@@ -6,14 +7,10 @@ module.exports.validationCreateUser = celebrate({
     about: Joi.string().max(30).min(2),
     email: Joi.string()
       .required()
-      .pattern(
-        /([a-zA-Z0-9]+)([_.\-{1}])?([a-zA-Z0-9]+)@([a-zA-Z0-9]+)([.])([a-zA-Z.]+)/,
-      ),
+      .pattern(regexEmail),
     password: Joi.string().required(),
     avatar: Joi.string()
-      .pattern(
-        /(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/,
-      ),
+      .pattern(regexLink),
   }),
 });
 
@@ -21,9 +18,7 @@ module.exports.validationLogin = celebrate({
   body: Joi.object().keys({
     email: Joi.string()
       .required()
-      .pattern(
-        /([a-zA-Z0-9]+)([_.\-{1}])?([a-zA-Z0-9]+)@([a-zA-Z0-9]+)([.])([a-zA-Z.]+)/,
-      ),
+      .pattern(regexEmail),
     password: Joi.string().required(),
   }),
 });
@@ -32,18 +27,14 @@ module.exports.validationCreateCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().max(30).min(2),
     link: Joi.string().required()
-      .pattern(
-        /(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/,
-      ),
+      .pattern(regexLink),
   }),
 });
 
 module.exports.validationUpdateAvatar = celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().required()
-      .pattern(
-        /(http|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/,
-      ),
+      .pattern(regexLink),
   }),
 });
 
@@ -56,12 +47,14 @@ module.exports.validationUpdateProfile = celebrate({
 
 module.exports.validationCardId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().hex().required(),
+    cardId: Joi.string().hex().required().max(24)
+      .min(24),
   }),
 });
 
 module.exports.validationUserId = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().hex().required(),
+    userId: Joi.string().hex().required().max(24)
+      .min(24),
   }),
 });
