@@ -15,7 +15,6 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password,
   } = req.body;
   bcrypt.hash(password, 10)
-    .orFail(new BadRequestError('Переданы некорректные данные'))
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
@@ -26,8 +25,13 @@ module.exports.createUser = (req, res, next) => {
       email: user.email,
     }))
     .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        throw new BadRequestError('Переданы некорректные данные');
+      }
       if (err.code === 11000) {
         throw new Confict('Пользователь уже зарегистрирован');
+      } else {
+        res.send({ message: err.message });
       }
     })
     .catch(next);
